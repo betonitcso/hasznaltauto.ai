@@ -1,3 +1,4 @@
+import re
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -14,26 +15,41 @@ class HasznaltautoDriver:
         dropdown = self.driver.find_element(by=By.XPATH, value='/html/body/div[4]/div[1]/div[6]/div[3]/div/div[2]/div[2]/div[1]/div/form/div[1]/div/div[1]/div/div/input')
         return dropdown
 
-    def extractModelsDropdown(make:str):
-        pass
-    
-    def extractCarMakes(self):
-        dropdown = self.extractMakesDropdown()
+    def extractDropdownValues(self, dropdown):
+        li = []
         dropdown.click()
-
-        carMakeList = []
         for i in range(300):
             try:
-                makes = self.driver.find_elements(by=By.CLASS_NAME, value='MuiAutocomplete-option')
-                for make in makes:
-                    mk = make.get_attribute('innerText').split('(')[0].lower().strip()
-                    if mk not in carMakeList:
-                        carMakeList.append(mk)
+                elements = self.driver.find_elements(by=By.CLASS_NAME, value='MuiAutocomplete-option')
+                for element in elements:
+                    el = element.get_attribute('innerText')
+                    if el not in li:
+                        li.append(el)
                 dropdown.send_keys(Keys.ARROW_DOWN)
             except Exception:
                 pass
+        return li
 
-        return carMakeList 
+    
+    def extractCarMakes(self):
+        dropdown = self.extractMakesDropdown()
+        makes = self.extractDropdownValues(dropdown)
+
+        def splitMakes(make:str):
+            
+            return re.split('\([0-9]',make)[0].strip()
+
+        return list(map(splitMakes, makes))
+
+    def extractModelsDropdown(self):
+        dropdown = self.driver.find_elemnt(by=By.XPATH, value="/html/body/div[3]/div[1]/div[6]/div[3]/div/div[2]/div[2]/div[1]/div/form/div[1]/div/div[2]/div/div")
+        return dropdown
+
+    def extractCarModels(self, make:str):
+        makeInput = self.driver.find_element(by=By.XPATH, value= '//*[@id="mui-2"]')
+        makeInput.send_keys(make)
+        makeInput.send_keys(Keys.ENTER)
+        dropdown = self.extractModelsDropdown()
 
 
 
